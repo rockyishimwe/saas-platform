@@ -3,6 +3,8 @@ const User = require('../models/User');
 const Company = require('../models/Company');
 const logger = require('../utils/logger');
 
+//Getting Dashboard stats
+
 const getDashboardStats = async (req, res) => {
   try {
     const companyId = req.user.companyId;
@@ -97,6 +99,7 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+//Getting Feedback Analytics
 const getFeedbackAnalytics = async (req, res) => {
   try {
     const companyId = req.user.companyId;
@@ -199,7 +202,7 @@ const getFeedbackAnalytics = async (req, res) => {
     });
   }
 };
-
+//Getting user analytics
 const getUserAnalytics = async (req, res) => {
   try {
     const companyId = req.user.companyId;
@@ -275,6 +278,7 @@ const getUserAnalytics = async (req, res) => {
     });
   }
 };
+//Controlling real time information of system
 
 const getPerformanceMetrics = async (req, res) => {
   try {

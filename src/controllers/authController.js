@@ -5,9 +5,13 @@ const { generateToken, generateRefreshToken } = require('../utils/jwt');
 const emailService = require('../utils/emailService');
 const logger = require('../utils/logger');
 
+
+//Registering
 const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, companyName } = req.body;
+    
+    console.log('Registration attempt:', { firstName, lastName, email, companyName });
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -19,6 +23,7 @@ const register = async (req, res) => {
 
     let company = await Company.findOne({ name: companyName });
     if (!company) {
+      console.log('Creating new company:', companyName);
       company = new Company({
         name: companyName,
         settings: {
@@ -27,18 +32,32 @@ const register = async (req, res) => {
         },
       });
       await company.save();
+      console.log('Company created with ID:', company._id);
     }
+
+    // Ensure we have the company ID
+    const companyId = company._id || company.id;
+    console.log('Company ID for user:', companyId);
 
     const user = new User({
       firstName,
       lastName,
       email,
       password,
-      companyId: company._id,
+      companyId: companyId,
       role: 'admin',
     });
 
+    console.log('User object created, attempting to save...');
     await user.save();
+    console.log('User saved successfully');
+
+    // Update the company with the user's ID as createdBy
+    if (company && !company.createdBy) {
+      company.createdBy = user._id;
+      await company.save();
+      console.log('Company updated with createdBy');
+    }
 
     const token = generateToken({ id: user._id });
     const refreshToken = generateRefreshToken({ id: user._id });
@@ -63,10 +82,12 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Registration error:', error);
     logger.error('Registration error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
